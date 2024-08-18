@@ -1,3 +1,4 @@
+import tkinter.dialog
 from FiveM import FiveM
 from Minecraft import Minecraft
 from SCP import SCP
@@ -24,17 +25,32 @@ class FormulaireAcces:
 
             ligne += 1
 
-        self.bouton_valider = ttk.Button(self.colonne_frame,text="Vérifier les informations")
+        self.bouton_valider = tkinter.Button(self.colonne_frame,text="Vérifier les informations",command=self.verifie_infos,bg="red")
         self.bouton_valider.grid(row=ligne)
 
-        self.colonne_frame.grid(column=n_colonne)
+        self.colonne_frame.grid(column=n_colonne,row=0)
 
     def verifie_infos(self):
-        if self.jeu == "FiveM" :
-            client = FiveM(self.entrees["IP"].get(),self.entrees["Pseudo"].get(),self.entrees["Mot de passe"].get())
-        elif self.jeu == "Minecraft" :
-            client = Minecraft(self.entrees["IP"].get(),self.entrees["Pseudo"].get(),self.entrees["Mot de passe"].get()) 
-        elif self.jeu == "SCP:SL" :
-            client = SCP(self.entrees["IP"].get(),self.entrees["Pseudo"].get(),self.entrees["Mot de passe"].get())
-        
-    
+        try :
+            if self.jeu == "FiveM" :
+                client = FiveM(self.entrees["IP"].get(),self.entrees["Pseudo"].get(),self.entrees["Mot de passe"].get())
+            elif self.jeu == "Minecraft" :
+                client = Minecraft(self.entrees["IP"].get(),self.entrees["Pseudo"].get(),self.entrees["Mot de passe"].get()) 
+            elif self.jeu == "SCP:SL" :
+                client = SCP(self.entrees["IP"].get(),self.entrees["Pseudo"].get(),self.entrees["Mot de passe"].get())
+            self.bouton_valider.state(tkinter.DISABLED)
+            self.bouton_valider.configure(bg="green")
+        except :
+            pass 
+
+class FenetreInitialisation:
+    def __init__(self):
+        self.fenetre = tkinter.Tk()
+
+        self.colonnes = {}
+        i = 0
+        for jeu in ["FiveM","Minecraft","SCP:SL"]:
+            self.colonnes[jeu] = FormulaireAcces(jeu,self.fenetre,i)
+            i += 1
+        self.fenetre.mainloop()
+FenetreInitialisation()

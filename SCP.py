@@ -2,7 +2,7 @@ from Client import Client
 
 
 class SCP :
-    def __init__(self):
+    def __init__(self,ip,pseudo,mdp):
 
         self.nom = "SCP:SL"
-        #self.client = Client("192.168.50.196","SCP:SL","1090")
+        self.client = Client(ip,pseudo,mdp)
