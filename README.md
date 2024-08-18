@@ -1,2 +1,2 @@
-# Projets-Python
-Tous mes projets pythons finis ou pas
+# UI pour un serveur local de jeu
+Il permet de controler un serveur local pour certain jeu. Il faut une config sur linux.
