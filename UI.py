@@ -1,3 +1,4 @@
+import tkinter.dialog
 import tkinter.messagebox
 from FiveM import FiveM
 from Minecraft import Minecraft
@@ -26,7 +27,7 @@ class Onglets :
 
 class TemplateOnglet:
     def __init__(self,root,jeu):
-        self.console = ttk.Frame(root)
+        self.console = ttk.Frame(root,borderwidth=5,relief="sunken")
         self.remplir_console_frame(jeu)
 
         self.options = ttk.Frame(root)
@@ -38,11 +39,12 @@ class TemplateOnglet:
         self.console.pack(side=tkinter.RIGHT)
     
     def remplir_console_frame(self,jeu):
-        console = tkinter.StringVar(self.console)
-        texte = ttk.Label(self.console,textvariable=console)
-        texte.grid(row=0)
+        console = tkinter.Text(self.console,state=tkinter.DISABLED,background="black",foreground="white")
+        console.tag_configure("center",justify="center")
 
-        target=client_jeux[jeu].CreerConsole(console)
+        console.grid(row=0,column=0)
+
+        client_jeux[jeu].CreerConsole(console)
 
         entree = ttk.Entry(self.console)
         entree.grid(row=1)
@@ -124,6 +126,8 @@ class FormulaireAcces:
                     sauvegarde_infos(self.tableau_colonne_jeu,self.entree_ip.get())
 
                 self.colonne_frame.master.destroy()
+
+                tkinter.messagebox.showwarning("NE PAS FERMER LA FENETRE !","ATTENTION, pour que les serveurs fonctionnent il ne faut pas fermer la fenetre suivante. Fermes là quand tu n'as plus besoin des serveurs !")
                 Main()
 
 class FenetreInitialisation:

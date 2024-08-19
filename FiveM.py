@@ -20,28 +20,32 @@ class FiveM :
 
         self.options = {"Allumer le serveur" : self.allumer,"Eteindre le serveur":self.eteindre}
 
+        self.client.execute_commande("pkill -U FiveM")
+
     def allumer(self):
-        self.client.connecter()
-        self.log("--------------- Nouvelle Instance du serveur ---------------")
+        if not self.client.est_connecte() :
+            self.client.connecter()
+            self.client.log("--------------- Nouvelle Instance du serveur ---------------")
 
-        self.log("Recherche de mise à jour...")
-        self.mise_a_jour()
+            self.client.log("Recherche de mise à jour...")
+            self.mise_a_jour()
 
-        self.log("Démarrage du serveur")
-        self.client.changer_de_repertoire("base_serveur")
-        self.client.execute_commande("sh run.sh",False)
+            self.client.log("Démarrage du serveur")
+            self.client.changer_de_repertoire("base_serveur")
+            self.client.execute_commande("sh run.sh",False)
 
-        self.log("Ouverture du tableau de bord du serveur (S'il n'y a pas de page disponible c'est que le serveur n'a pas marché)")
-        webbrowser.open_new("http://" + self.client.ip+":40120")
+            self.client.log("Ouverture du tableau de bord du serveur (S'il n'y a pas de page disponible c'est que le serveur n'a pas marché)")
+            webbrowser.open_new("http://" + self.client.ip+":40120")
+        else :
+            self.client.log("Le serveur est déjà allumé !")
 
     def eteindre(self):
         if self.client.est_connecte() :
-            self.log("Fermeture du serveur...")
+            self.client.log("Fermeture du serveur...")
             self.client.execute_commande("pkill -U FiveM") # Stoppe tous les procesuss lancé par fiveM (un peu radicale mais ça marche)
-            self.log("Serveur fermé !")
+            self.client.log("Serveur fermé !")
 
-            self.log("--------------- Fermeture de l'instance du serveur ---------------")
-            self.client.connecter()
+            self.client.log("--------------- Fermeture de l'instance du serveur ---------------")
 
     def mise_a_jour(self):
         if self.client.est_connecte() :
@@ -49,28 +53,28 @@ class FiveM :
             version_actuelle = recupere_version_actuelle()
             
             if version_actuelle != -1 and version_disponible != -1 and version_disponible > version_actuelle :
-                self.log("Une nouvelle version est disponible => Mise à jour lancée")
+                self.client.log("Une nouvelle version est disponible => Mise à jour lancée")
 
                 self.client.changer_de_repertoire("base_serveur")
 
-                self.log("Nettoyage des fichiers...")
+                self.client.log("Nettoyage des fichiers...")
                 self.client.execute_commande("rm -r alpine && rm run.sh")
                 
-                self.log("Téléchargement de la mise à jour...")
+                self.client.log("Téléchargement de la mise à jour...")
                 self.client.execute_commande("wget " + lien)
                 
-                self.log("Extraction des fichiers...")
+                self.client.log("Extraction des fichiers...")
                 self.client.execute_commande("tar xf fx.tar.xz")
 
-                self.log("Finalisation de l'installation...")
+                self.client.log("Finalisation de l'installation...")
                 self.client.execute_commande("rm fx.tar.xz")
 
-                self.log("Mise à jour terminée !")
+                self.client.log("Mise à jour terminée !")
 
                 mettre_a_jour_version("FiveM",version_disponible)
 
         else :
-            self.log("Mise à jour impossible le serveur ne repond pas :( )")
+            self.client.log("Mise à jour impossible le serveur ne repond pas :( )")
             self.eteindre()
 
     def recupere_mod_installes(self):
@@ -94,11 +98,11 @@ class FiveM :
 
             liste_modes_installes = self.recupere_mod_installes()
             if nom in liste_modes_installes :
-                self.log("Le mode est déjà installé")
+                self.client.log("Le mode est déjà installé")
             else :
                 self.client.changer_de_repertoire("data_serveur/resources")
 
-                self.log("Téléchargement du mode " + nom + "...")
+                self.client.log("Téléchargement du mode " + nom + "...")
                 if type_f == "git" :
                     self.client.execute_commande("git clone " + lien)
                 elif type_f == "zip" :
@@ -113,13 +117,13 @@ class FiveM :
                     liste_modes_installes.append(nom)
 
                     self.mettre_a_jour_modes_cfg(liste_modes_installes)
-                    self.log("Mode installé")
+                    self.client.log("Mode installé")
                     return nom
                 else:
-                    self.log("! Mode non installé (Le dossier est complexe) !")
+                    self.client.log("! Mode non installé (Le dossier est complexe) !")
                 
         else :
-            self.log("Le lien n'est pas valide !")
+            self.client.log("Le lien n'est pas valide !")
 
     def mettre_a_jour_modes_cfg(self,liste_modes):
         texte = ""
@@ -136,7 +140,7 @@ class FiveM :
         liste_modes_installes = self.recupere_mod_installes()
 
         if nom in liste_modes_installes :
-            self.log("Désinstallation du mode " + nom)
+            self.client.log("Désinstallation du mode " + nom)
             self.client.changer_de_repertoire("data_serveur/resources")
             self.client.execute_commande("rm -r " + nom)
             liste_modes_installes.remove(nom)
@@ -144,11 +148,11 @@ class FiveM :
             self.client.changer_de_repertoire("data_serveur")
 
             self.mettre_a_jour_modes_cfg(liste_modes_installes)
-            self.log("Désinstallation complété")
+            self.client.log("Désinstallation complété")
             
 
         else :
-            self.log("Le mode  n'est pas installé !")
+            self.client.log("Le mode  n'est pas installé !")
 
     def est_dossier_root(self,nom_mode):
         self.client.changer_de_repertoire("data_serveur/resources")
@@ -159,9 +163,6 @@ class FiveM :
     def CreerConsole(self,console):
         self.console = console
         self.client.console = console
-
-    def log(self,texte):
-        self.console.set(self.console.get()+"\n"+texte)
 
 
     

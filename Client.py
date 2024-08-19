@@ -17,6 +17,7 @@ class Client :
         self.repertoire_actuelle = ""
 
         self.console = None
+        self.ligne_console = 0
 
         self.connecter()
 
@@ -67,3 +68,10 @@ class Client :
         
     def changer_de_repertoire(self,chemin) :
         self.repertoire_actuelle = chemin
+
+    def log(self,texte):
+        self.console.configure(state="normal")
+        self.console.insert("end","\n"+texte,"center")
+        self.console.configure(state="disabled")
+        self.console.see("end")
+
