@@ -6,3 +6,8 @@ class SCP :
 
         self.nom = "SCP:SL"
         self.client = Client(ip,pseudo,mdp)
+
+        self.options = {}
+
+    def CreerConsole(self,console):
+        pass

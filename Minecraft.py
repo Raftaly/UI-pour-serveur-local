@@ -6,3 +6,8 @@ class Minecraft :
 
         self.nom = "Minecraft"
         self.client = Client(ip,pseudo,mdp)
+
+        self.options = {}
+    
+    def CreerConsole(self,console):
+        pass
