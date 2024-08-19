@@ -18,6 +18,8 @@ class FiveM :
 
         self.console = None
 
+        self.options = {"Allumer le serveur" : self.allumer,"Eteindre le serveur":self.eteindre}
+
     def allumer(self):
         self.client.connecter()
         self.log("--------------- Nouvelle Instance du serveur ---------------")
@@ -30,16 +32,15 @@ class FiveM :
         self.client.execute_commande("sh run.sh",False)
 
         self.log("Ouverture du tableau de bord du serveur (S'il n'y a pas de page disponible c'est que le serveur n'a pas marché)")
-        webbrowser.open_new("http://192.168.50.196:40120")
+        webbrowser.open_new("http://" + self.client.ip+":40120")
 
-    def eteindre(self,definitif):
+    def eteindre(self):
         if self.client.est_connecte() :
             self.log("Fermeture du serveur...")
             self.client.execute_commande("pkill -U FiveM") # Stoppe tous les procesuss lancé par fiveM (un peu radicale mais ça marche)
             self.log("Serveur fermé !")
 
             self.log("--------------- Fermeture de l'instance du serveur ---------------")
-        if not definitif :
             self.client.connecter()
 
     def mise_a_jour(self):
@@ -149,15 +150,19 @@ class FiveM :
         else :
             self.log("Le mode  n'est pas installé !")
 
-    def log(self,texte):
-        assert self.console is not None,"! Aucune console reliée !"
-        self.console.set(self.console.get() + "\n" + texte)
-
     def est_dossier_root(self,nom_mode):
         self.client.changer_de_repertoire("data_serveur/resources")
         fichiers = self.client.execute_commande("ls " + nom_mode).split()
 
         return "fxmanifest.lua" in fichiers
+    
+    def CreerConsole(self,console):
+        self.console = console
+        self.client.console = console
+
+    def log(self,texte):
+        self.console.set(self.console.get()+"\n"+texte)
+
 
     
 def recupere_nom_mode(lien):

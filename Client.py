@@ -1,5 +1,7 @@
 import paramiko
 import paramiko.client
+import time
+
 
 TENTATIVE_CONNEXION_MAX = 50
 
@@ -13,6 +15,8 @@ class Client :
         self.terminal = paramiko.client.SSHClient()
 
         self.repertoire_actuelle = ""
+
+        self.console = None
 
         self.connecter()
 
