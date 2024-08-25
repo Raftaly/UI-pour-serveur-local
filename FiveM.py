@@ -1,8 +1,11 @@
 from Client import Client
+from Module_options import GestionnaireOptions
+
 import webbrowser 
 import bs4
 import requests
 import csv
+
 
 
 console = None
@@ -18,9 +21,16 @@ class FiveM :
 
         self.console = None
 
-        self.options = {"Allumer le serveur" : self.allumer,"Eteindre le serveur":self.eteindre}
+        self.options = GestionnaireOptions()
+        self.initialise_options()
 
         self.client.execute_commande("pkill -U FiveM")
+
+    def initialise_options(self):
+        self.options.ajoute_option_simple("Allumer le serveur",self.allumer,True)
+        self.options.ajoute_option_simple("Eteindre le serveur",self.eteindre,True)
+        self.options.ajoute_option_texte("Ajouter un mode",self.ajoute_mode,False,"Copie-Colle le lien github du mode :")
+        self.options.ajoute_option_choix("Retirer un mode",self.retire_mode,False,"Choisis un mode à retirer",self.recupere_mod_installes())
 
     def allumer(self):
         if not self.client.est_connecte() :
@@ -34,7 +44,7 @@ class FiveM :
             self.client.changer_de_repertoire("base_serveur")
             self.client.execute_commande("sh run.sh",False)
 
-            self.client.log("Ouverture du tableau de bord du serveur (S'il n'y a pas de page disponible c'est que le serveur n'a pas marché)")
+            self.client.log("Ouverture du tableau de bord du serveur \n(S'il n'y a pas de page disponible c'est que le serveur n'a pas marché)")
             webbrowser.open_new("http://" + self.client.ip+":40120")
         else :
             self.client.log("Le serveur est déjà allumé !")
@@ -42,7 +52,7 @@ class FiveM :
     def eteindre(self):
         if self.client.est_connecte() :
             self.client.log("Fermeture du serveur...")
-            self.client.execute_commande("pkill -U FiveM") # Stoppe tous les procesuss lancé par fiveM (un peu radicale mais ça marche)
+            self.client.deconnecter()
             self.client.log("Serveur fermé !")
 
             self.client.log("--------------- Fermeture de l'instance du serveur ---------------")
@@ -53,7 +63,7 @@ class FiveM :
             version_actuelle = recupere_version_actuelle()
             
             if version_actuelle != -1 and version_disponible != -1 and version_disponible > version_actuelle :
-                self.client.log("Une nouvelle version est disponible => Mise à jour lancée")
+                self.client.log("Une nouvelle version est disponible => Mise à jour lancée (%s --> %s)" % (str(version_actuelle), str(version_disponible)))
 
                 self.client.changer_de_repertoire("base_serveur")
 
@@ -80,7 +90,7 @@ class FiveM :
     def recupere_mod_installes(self):
         self.client.changer_de_repertoire("data_serveur/resources")
         liste_modes = [mode for mode in self.client.execute_commande("ls").split() if mode[0] != "["]
-        
+
         return liste_modes
 
     def lien_valide(self,lien):
@@ -89,9 +99,12 @@ class FiveM :
             return True,"git"
         elif lien[n - 4:] == ".zip" :
             return True,"zip"
-        return 
+        else :
+            return False,""
     
     def ajoute_mode(self,lien):
+        self.client.connecter()
+
         est_valide,type_f = self.lien_valide(lien)
         if est_valide :
             nom = recupere_nom_mode(lien)
@@ -100,6 +113,7 @@ class FiveM :
             if nom in liste_modes_installes :
                 self.client.log("Le mode est déjà installé")
             else :
+
                 self.client.changer_de_repertoire("data_serveur/resources")
 
                 self.client.log("Téléchargement du mode " + nom + "...")
@@ -117,13 +131,17 @@ class FiveM :
                     liste_modes_installes.append(nom)
 
                     self.mettre_a_jour_modes_cfg(liste_modes_installes)
+
+                    self.options.recupere_option("Retirer un mode").ajoute_choix(nom)
+                    
                     self.client.log("Mode installé")
-                    return nom
                 else:
                     self.client.log("! Mode non installé (Le dossier est complexe) !")
+
+                self.client.deconnecter()
                 
         else :
-            self.client.log("Le lien n'est pas valide !")
+            self.client.log("Le mode n'existe pas ou le lien n'est pas de github !")
 
     def mettre_a_jour_modes_cfg(self,liste_modes):
         texte = ""
@@ -136,6 +154,7 @@ class FiveM :
         self.client.execute_commande("echo '%s' >> modes.cfg" %texte)
 
     def retire_mode(self,nom):
+        self.client.connecter()
 
         liste_modes_installes = self.recupere_mod_installes()
 
@@ -150,9 +169,10 @@ class FiveM :
             self.mettre_a_jour_modes_cfg(liste_modes_installes)
             self.client.log("Désinstallation complété")
             
+            self.client.deconnecter()
 
         else :
-            self.client.log("Le mode  n'est pas installé !")
+            self.client.log("Le mode '%s' n'est pas installé !" %nom)
 
     def est_dossier_root(self,nom_mode):
         self.client.changer_de_repertoire("data_serveur/resources")

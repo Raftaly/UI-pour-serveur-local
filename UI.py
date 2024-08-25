@@ -1,5 +1,6 @@
 import tkinter.dialog
 import tkinter.messagebox
+import tkinter.simpledialog
 from FiveM import FiveM
 from Minecraft import Minecraft
 from SCP import SCP
@@ -11,7 +12,7 @@ import threading
 import csv
 from os.path import exists
 
-client_jeux = {"Minecraft":None,"SCP:SL":None,"FiveM":None}
+client_jeux = {"FiveM":None,"Minecraft":None,"SCP:SL":None}
 
 BOUTON_PAR_LIGNE = 3
 
@@ -31,9 +32,15 @@ class TemplateOnglet:
         self.remplir_console_frame(jeu)
 
         self.options = ttk.Frame(root)
-        self.remplir_options_frame(jeu)
 
-
+        i = 0
+        for option in client_jeux[jeu].options.liste:
+            if option.fenetre_necessaire :
+                bouton = ttk.Button(self.options,text=option.nom,command=lambda option=option : option.execute_fonction(root))
+            else :
+                bouton = ttk.Button(self.options,text=option.nom,command=option.execute_fonction)
+            bouton.grid(column=i%BOUTON_PAR_LIGNE,row=i//BOUTON_PAR_LIGNE)
+            i += 1
 
         self.options.pack(side=tkinter.LEFT)
         self.console.pack(side=tkinter.RIGHT)
@@ -52,13 +59,6 @@ class TemplateOnglet:
         bouton = ttk.Button(self.console,text="-- Valider --")
         bouton.grid(row=2)
 
-    def remplir_options_frame(self,jeu):
-        i = 0
-        for option in client_jeux[jeu].options:
-            bouton = ttk.Button(self.options,text=option,command=lambda option=option: threading.Thread(target=client_jeux[jeu].options[option]).start())
-            bouton.grid(row=i // BOUTON_PAR_LIGNE,column=i % BOUTON_PAR_LIGNE)
-            i += 1
-
 class Main :
     def __init__(self):
         self.fenetre = tkinter.Tk()
@@ -68,9 +68,14 @@ class Main :
         for jeu in client_jeux :
             TemplateOnglet(self.onglets.onglets_jeux[jeu],jeu)
 
-
+        self.fenetre.after(100,lambda : self.fenetre.focus_force())
+        self.fenetre.protocol("WM_DELETE_WINDOW",self.fermer_app)
         self.fenetre.mainloop()
 
+    def fermer_app(self):
+        client_jeux["FiveM"].eteindre()
+
+        self.fenetre.destroy()
 ################### Prompt info client #####################################
 
 def tous_valide():
@@ -147,6 +152,9 @@ class FenetreInitialisation:
         
         if exists("Infos_connexion.csv") and tkinter.messagebox.askyesno("Pré-remplir les informations ?","Veux-tu compléter directement avec les infos enregistrées ?") :
             ecrit_infos(self.colonnes)
+            for jeu in self.colonnes.values() :
+                jeu.verifie_infos()
+
         self.fenetre.mainloop()
 
 def sauvegarde_infos(colonne_jeu,ip):

@@ -48,8 +48,7 @@ class Client :
             False
         
     def deconnecter(self):
-        self.terminal.close()
-        self.terminal = None 
+        self.execute_commande("pkill -U %s" % self.utilisateur)  # Stoppe tous les procesuss lancé par fiveM (un peu radicale mais ça marche)
 
     def execute_commande(self,commande,attendre_reponse = True):
         if attendre_reponse :

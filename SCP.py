@@ -1,4 +1,5 @@
 from Client import Client
+from Module_options import GestionnaireOptions
 
 
 class SCP :
@@ -7,7 +8,7 @@ class SCP :
         self.nom = "SCP:SL"
         self.client = Client(ip,pseudo,mdp)
 
-        self.options = {}
+        self.options = GestionnaireOptions()
 
     def CreerConsole(self,console):
         pass
