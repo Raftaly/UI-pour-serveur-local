@@ -5,6 +5,7 @@ import webbrowser
 import bs4
 import requests
 import csv
+from os.path import exists
 
 
 
@@ -220,14 +221,17 @@ def extraire_version_lien(lien) : #On retire √† l'avance les bout inutiles du d√
 
 #CSV
 def recupere_version_actuelle():
-    fichier = open("Versions.csv","r")
-    liste_jeux = list(csv.DictReader(fichier))
+    if exists("Versions.csv") :
+        fichier = open("Versions.csv","r")
+        liste_jeux = list(csv.DictReader(fichier))
 
-    trouve,indice = indice_dictionnaire_jeu("FiveM",liste_jeux)
-    fichier.close()
+        trouve,indice = indice_dictionnaire_jeu("FiveM",liste_jeux)
+        fichier.close()
 
-    if trouve :
-        return liste_jeux[indice]["Version"]
+        if trouve :
+            return liste_jeux[indice]["Version"]
+        else :
+            return -1
     else :
         return -1
 
