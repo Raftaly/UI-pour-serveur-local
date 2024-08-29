@@ -44,7 +44,7 @@ class TemplateOnglet:
 
         self.options.pack(side=tkinter.LEFT)
         self.console.pack(side=tkinter.RIGHT)
-    
+
     def remplir_console_frame(self,jeu):
         console = tkinter.Text(self.console,state=tkinter.DISABLED,background="black",foreground="white")
         console.tag_configure("center",justify="center")
@@ -63,6 +63,13 @@ class Main :
     def __init__(self):
         self.fenetre = tkinter.Tk()
         self.fenetre.title("Serveur de jeux")
+        self.fenetre.withdraw()
+
+        FenetreInitialisation(self.fenetre)
+
+        tkinter.messagebox.showwarning("NE PAS FERMER LA FENETRE !","ATTENTION, pour que les serveurs fonctionnent il ne faut pas fermer la fenetre suivante. Fermes là quand tu n'as plus besoin des serveurs !")
+        self.fenetre.deiconify()
+
         self.onglets = Onglets(self.fenetre)
 
         for jeu in client_jeux :
@@ -131,13 +138,11 @@ class FormulaireAcces:
                     sauvegarde_infos(self.tableau_colonne_jeu,self.entree_ip.get())
 
                 self.colonne_frame.master.destroy()
-
-                tkinter.messagebox.showwarning("NE PAS FERMER LA FENETRE !","ATTENTION, pour que les serveurs fonctionnent il ne faut pas fermer la fenetre suivante. Fermes là quand tu n'as plus besoin des serveurs !")
-                Main()
+                self.colonne_frame.master.quit()
 
 class FenetreInitialisation:
-    def __init__(self):
-        self.fenetre = tkinter.Tk()
+    def __init__(self,root):
+        self.fenetre = tkinter.Toplevel(root)
         self.fenetre.title("Informations de connexion")
         
         entree_ip = ttk.Entry(self.fenetre)
@@ -151,11 +156,16 @@ class FenetreInitialisation:
             i += 1
         
         if exists("Infos_connexion.csv") and tkinter.messagebox.askyesno("Pré-remplir les informations ?","Veux-tu compléter directement avec les infos enregistrées ?") :
-            ecrit_infos(self.colonnes)
-            for jeu in self.colonnes.values() :
-                jeu.verifie_infos()
+            threading.Thread(target=self.preremplir).start()
 
         self.fenetre.mainloop()
+    
+    def preremplir(self):
+        ecrit_infos(self.colonnes)
+
+        if tkinter.messagebox.askyesno("Valider les infos ?","Veux-tu valider les informations pré-remplies ?") :
+            for jeu in self.colonnes.values() :
+                jeu.verifie_infos()
 
 def sauvegarde_infos(colonne_jeu,ip):
     fichier = open("Infos_connexion.csv",mode="w")
@@ -189,4 +199,4 @@ def ecrit_infos(colonnes_jeux):
                 colonnes_jeux[nom].entrees[info].delete(0,tkinter.END)
                 colonnes_jeux[nom].entrees[info].insert(tkinter.END,jeu[info])
 ###################################################################
-FenetreInitialisation()
+Main()

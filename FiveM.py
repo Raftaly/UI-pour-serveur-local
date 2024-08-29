@@ -61,9 +61,9 @@ class FiveM :
     def mise_a_jour(self):
         if self.client.est_connecte() :
             version_disponible,lien = derniere_version_disponible()
-            version_actuelle = recupere_version_actuelle()
+            version_actuelle = self.recupere_version_actuelle()
             
-            if version_actuelle != -1 and version_disponible != -1 and version_disponible > version_actuelle :
+            if version_actuelle == -1 or version_disponible == -1 or version_disponible > version_actuelle :
                 self.client.log("Une nouvelle version est disponible => Mise à jour lancée (%s --> %s)" % (str(version_actuelle), str(version_disponible)))
 
                 self.client.changer_de_repertoire("base_serveur")
@@ -82,7 +82,7 @@ class FiveM :
 
                 self.client.log("Mise à jour terminée !")
 
-                mettre_a_jour_version("FiveM",version_disponible)
+                self.mettre_a_jour_version(version_disponible)
 
         else :
             self.client.log("Mise à jour impossible le serveur ne repond pas :( )")
@@ -95,6 +95,9 @@ class FiveM :
         return liste_modes
 
     def lien_valide(self,lien):
+        if lien is None :
+            return False,""
+
         n = len(lien)
         if lien[n - 4:] == ".git" :
             return True,"git"
@@ -185,6 +188,22 @@ class FiveM :
         self.console = console
         self.client.console = console
 
+    def recupere_version_actuelle(self):
+        self.client.connecter()
+        self.client.changer_de_repertoire("")
+        version = self.client.execute_commande("cat Version.txt",True).strip()
+
+        if version.isdigit() :
+            return int(version)
+        else :
+            return -1
+        
+    def mettre_a_jour_version(self,version):
+        self.client.connecter()
+        self.client.changer_de_repertoire("")
+        self.client.execute_commande('echo "%s" > Version.txt' % str(version))
+
+
 
     
 def recupere_nom_mode(lien):
@@ -217,45 +236,7 @@ def extraire_version_lien(lien) : #On retire à l'avance les bout inutiles du d�
     i = 0
     while lien[i] != "-" :
         i += 1
-    return lien[:i]
-
-#CSV
-def recupere_version_actuelle():
-    if exists("Versions.csv") :
-        fichier = open("Versions.csv","r")
-        liste_jeux = list(csv.DictReader(fichier))
-
-        trouve,indice = indice_dictionnaire_jeu("FiveM",liste_jeux)
-        fichier.close()
-
-        if trouve :
-            return liste_jeux[indice]["Version"]
-        else :
-            return -1
-    else :
-        return -1
-
-def mettre_a_jour_version(jeu,nouvelle_version): #Ajoute le jeu s'il n'existe pas
-    fichier = open("Versions.csv","w+")
-    liste_jeux = list(csv.DictReader(fichier))
-    trouve,indice_jeu = indice_dictionnaire_jeu(jeu,liste_jeux)
-    if trouve :
-        liste_jeux[indice_jeu]["Version"] = nouvelle_version
-    else :
-        liste_jeux.append({"Nom" : jeu, "Version" : nouvelle_version})
-
-    cles = ["Nom","Version"]
-
-    descripteur = csv.DictWriter(fichier,cles)
-    descripteur.writeheader()
-    descripteur.writerows(liste_jeux)
-    fichier.close()
-
-def indice_dictionnaire_jeu(nom_jeu,liste) :
-    i = 0
-    while i < len(liste) and liste[i]["Nom"] != nom_jeu :
-        i +=1
-    return (i < len(liste),i)
+    return int(lien[:i])
 
 #Texte
 def derniere_occ(mot):
